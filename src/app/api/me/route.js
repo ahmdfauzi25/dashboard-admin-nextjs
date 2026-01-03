@@ -29,7 +29,7 @@ export async function GET(request) {
     }
 
     // Convert avatar buffer to base64 if it exists
-    if (user.avatar) {
+    if (user.avatar && Buffer.isBuffer(user.avatar)) {
       user.avatarBase64 = user.avatar.toString('base64')
       delete user.avatar // Remove the buffer to reduce response size
     } else {
@@ -38,6 +38,7 @@ export async function GET(request) {
 
     return NextResponse.json(
       {
+        success: true,
         user: user
       },
       { status: 200 }

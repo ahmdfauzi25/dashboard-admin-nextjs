@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }) {
   const [logoutLoading, setLogoutLoading] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   
   // Determine if sidebar should be visually open (either permanently or on hover)
   const isSidebarVisuallyOpen = isSidebarOpen || isHovering
@@ -37,6 +38,46 @@ export default function DashboardLayout({ children }) {
     }
 
     fetchUserProfile()
+  }, [])
+
+  // Poll for unread messages
+  useEffect(() => {
+    const fetchUnreadMessages = async () => {
+      try {
+        const response = await fetch('/api/messages/unread')
+        if (response.ok) {
+          const data = await response.json()
+          
+          if (data.success && data.messages) {
+            setUnreadCount(data.totalUnread || 0)
+            
+            // Update notifications with unread messages
+            const newNotifications = data.messages.map(msg => ({
+              id: `msg-${msg.sender_id}-${Date.now()}`,
+              type: 'message',
+              sender_id: msg.sender_id,
+              sender_name: msg.sender_name,
+              avatarBase64: msg.avatarBase64,
+              message: msg.last_message,
+              unread_count: msg.unread_count,
+              time: msg.last_message_time
+            }))
+            
+            setNotifications(newNotifications)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching unread messages:', error)
+      }
+    }
+
+    // Initial fetch
+    fetchUnreadMessages()
+
+    // Poll every 5 seconds
+    const interval = setInterval(fetchUnreadMessages, 5000)
+
+    return () => clearInterval(interval)
   }, [])
 
   // Open profile modal
@@ -160,16 +201,20 @@ export default function DashboardLayout({ children }) {
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
-              {notifications.length > 0 && (
-                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full ring-2 ring-white bg-red-500"></span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 text-xs font-bold rounded-full bg-red-500 text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
               )}
             </button>
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className={`absolute right-0 top-14 w-72 rounded-lg shadow-lg z-50 border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`absolute right-0 top-14 w-80 rounded-lg shadow-lg z-50 border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Notifications</h3>
+                  <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Notifications {unreadCount > 0 && `(${unreadCount})`}
+                  </h3>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.length === 0 ? (
@@ -178,11 +223,55 @@ export default function DashboardLayout({ children }) {
                     </div>
                   ) : (
                     notifications.map(notif => (
-                      <div key={notif.id} className={`p-4 border-b ${isDarkMode ? 'border-gray-700 bg-gray-750' : 'border-gray-100 hover:bg-gray-50'} transition-colors`}>
-                        <p className={`text-sm ${notif.type === 'success' ? 'text-green-600' : notif.type === 'error' ? 'text-red-600' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                          {notif.message}
-                        </p>
-                      </div>
+                      <button
+                        key={notif.id}
+                        onClick={() => {
+                          setShowNotifications(false)
+                          router.push(`/dashboard/chat?user=${notif.sender_id}`)
+                        }}
+                        className={`w-full p-4 border-b text-left transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'}`}
+                      >
+                        <div className="flex items-start space-x-3">
+                          {/* Avatar */}
+                          <div className="flex-shrink-0">
+                            {notif.avatarBase64 ? (
+                              <img
+                                className="h-10 w-10 rounded-full object-cover"
+                                src={`data:image/png;base64,${notif.avatarBase64}`}
+                                alt={notif.sender_name}
+                                onError={e => { e.target.onerror = null; e.target.src = '/img/user.png'; }}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 flex items-center justify-center rounded-full bg-violet-200 text-violet-700 font-bold">
+                                {notif.sender_name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Message Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className={`font-semibold text-sm truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {notif.sender_name}
+                              </p>
+                              {notif.unread_count > 1 && (
+                                <span className="ml-2 px-2 py-0.5 text-xs font-bold rounded-full bg-red-500 text-white">
+                                  {notif.unread_count}
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-sm line-clamp-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                              {notif.message}
+                            </p>
+                            <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                              {new Date(notif.time).toLocaleTimeString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
                     ))
                   )}
                 </div>

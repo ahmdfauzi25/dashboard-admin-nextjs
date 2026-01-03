@@ -526,7 +526,7 @@ export default function UsersPage() {
                   >
                     <option value="USER">User</option>
                     <option value="ADMIN">Admin</option>
-                    <option value="MODERATOR">Moderator</option>
+                    <option value="RESELLER">Reseller</option>
                   </select>
                 </div>
 
@@ -729,7 +729,7 @@ export default function UsersPage() {
                   >
                     <option value="USER">User</option>
                     <option value="ADMIN">Admin</option>
-                    <option value="MODERATOR">Moderator</option>
+                    <option value="RESELLER">Reseller</option>
                   </select>
                 </div>
 
