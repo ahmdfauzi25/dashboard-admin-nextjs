@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+/* Grid pattern for login page */
+.bg-grid-slate-100 {
+  background-image: 
+    linear-gradient(to right, rgb(241 245 249 / 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(241 245 249 / 0.5) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Animated moving background for login page */
+@keyframes moving-bg {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  25% {
+    transform: scale(1.1) translate(-2%, -2%);
+  }
+  50% {
+    transform: scale(1.05) translate(2%, 2%);
+  }
+  75% {
+    transform: scale(1.08) translate(-1%, 1%);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+.animate-moving-bg {
+  animation: moving-bg 20s ease-in-out infinite;
+}
+
+/* Select and Option styling */
+select {
+  color: #1f2937;
+}
+
+select option {
+  color: #1f2937;
+  background-color: white;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  color: #1f2937;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+}
