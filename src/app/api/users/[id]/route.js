@@ -5,8 +5,34 @@ import { hashPassword } from '@/lib/auth'
 export async function PUT(request, { params }) {
   try {
     const { id } = params
-    const body = await request.json()
-    const { name, email, password, role } = body
+    const contentType = request.headers.get('content-type') || ''
+    let name, email, password, role, avatarBuffer
+
+    if (contentType.includes('application/json')) {
+      // Handle JSON request
+      const body = await request.json()
+      name = body.name
+      email = body.email
+      password = body.password
+      role = body.role
+    } else if (contentType.includes('multipart/form-data')) {
+      // Handle FormData with file upload
+      const formData = await request.formData()
+      name = formData.get('name')
+      email = formData.get('email')
+      password = formData.get('password')
+      role = formData.get('role')
+      
+      const avatarFile = formData.get('avatar')
+      if (avatarFile && avatarFile instanceof File && avatarFile.size > 0) {
+        avatarBuffer = Buffer.from(await avatarFile.arrayBuffer())
+      }
+    } else {
+      return NextResponse.json(
+        { error: 'Unsupported content type' },
+        { status: 400 }
+      )
+    }
 
     // Validate input
     if (!name || !email) {
@@ -54,6 +80,12 @@ export async function PUT(request, { params }) {
       const hashedPassword = await hashPassword(password)
       updateQuery += ', password = ?'
       updateParams.push(hashedPassword)
+    }
+
+    // Add avatar if provided
+    if (avatarBuffer) {
+      updateQuery += ', avatar = ?'
+      updateParams.push(avatarBuffer)
     }
 
     updateQuery += ' WHERE id = ?'

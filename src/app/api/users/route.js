@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     // Fetch all users from database
     const users = await query(
-      'SELECT id, name, email, role FROM users ORDER BY id DESC',
+      'SELECT id, name, email, role, avatar FROM users ORDER BY id DESC',
       []
     )
 
@@ -15,6 +15,7 @@ export async function GET(request) {
       name: user.name,
       email: user.email,
       role: user.role || 'User',
+      avatar: user.avatar ? `data:image/png;base64,${user.avatar.toString('base64')}` : null,
       position: user.role || 'User',
       office: 'HQ',
       age: Math.floor(Math.random() * 40) + 20, // Random age for demo

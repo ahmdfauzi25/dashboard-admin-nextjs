@@ -4,14 +4,39 @@ import { hashPassword, generateToken } from '@/lib/auth'
 
 export async function POST(request) {
   try {
-    // Log request for debugging
     console.log('Register API called')
     
-    const body = await request.json()
-    const { email, name, password, role: rawRole } = body
-    const role = (rawRole || 'USER').toUpperCase()
+    // Get content type
+    const contentType = request.headers.get('content-type') || ''
+    let email, name, password, role, avatarBuffer
     
-    console.log('Register data received:', { email, name, role })
+    if (contentType.includes('application/json')) {
+      // Handle JSON request (for backward compatibility)
+      const body = await request.json()
+      email = body.email
+      name = body.name
+      password = body.password
+      role = (body.role || 'USER').toUpperCase()
+    } else if (contentType.includes('multipart/form-data')) {
+      // Handle FormData with file upload
+      const formData = await request.formData()
+      email = formData.get('email')
+      name = formData.get('name')
+      password = formData.get('password')
+      role = (formData.get('role') || 'USER').toUpperCase()
+      
+      const avatarFile = formData.get('avatar')
+      if (avatarFile && avatarFile instanceof File && avatarFile.size > 0) {
+        avatarBuffer = Buffer.from(await avatarFile.arrayBuffer())
+      }
+    } else {
+      return NextResponse.json(
+        { error: 'Unsupported content type' },
+        { status: 400 }
+      )
+    }
+    
+    console.log('Register data received:', { email, name, role, hasAvatar: !!avatarBuffer })
 
     // Validate input
     if (!email || !name || !password) {
@@ -67,13 +92,21 @@ export async function POST(request) {
 
     // Create user
     console.log('Creating user in database...')
-    const result = await query(
-      'INSERT INTO users (email, name, password, role) VALUES (?, ?, ?, ?)',
-      [trimmedEmail, trimmedName, hashedPassword, role]
-    )
+    let result
+    if (avatarBuffer) {
+      result = await query(
+        'INSERT INTO users (email, name, password, role, avatar) VALUES (?, ?, ?, ?, ?)',
+        [trimmedEmail, trimmedName, hashedPassword, role, avatarBuffer]
+      )
+    } else {
+      result = await query(
+        'INSERT INTO users (email, name, password, role) VALUES (?, ?, ?, ?)',
+        [trimmedEmail, trimmedName, hashedPassword, role]
+      )
+    }
     const userId = result.insertId
     
-    // Fetch the created user to match the previous Prisma behavior
+    // Fetch the created user
     const users = await query('SELECT id, email, name, role, createdAt, updatedAt FROM users WHERE id = ?', [userId])
     const user = users.length > 0 ? users[0] : null
 
@@ -109,7 +142,7 @@ export async function POST(request) {
       { status: 201 }
     )
 
-    // Set HTTP-only cookie for token (more secure than localStorage)
+    // Set HTTP-only cookie for token
     response.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -122,9 +155,8 @@ export async function POST(request) {
     console.error('Registration error:', error)
     console.error('Error code:', error.code)
     console.error('Error message:', error.message)
-    console.error('Error stack:', error.stack)
     
-    // Handle MySQL duplicate entry error (ER_DUP_ENTRY)
+    // Handle MySQL duplicate entry error
     if (error && error.code === 'ER_DUP_ENTRY') {
       return NextResponse.json(
         { error: 'User with this email already exists' },
@@ -132,7 +164,7 @@ export async function POST(request) {
       )
     }
 
-    // Handle MySQL connection or general database errors
+    // Handle MySQL connection errors
     if (error && (String(error.code || '').startsWith('ER_') || error.message?.includes('connect') || error.message?.includes('Can\'t reach database server'))) {
       const dbErrorMessage = error.message || 'Unknown database error.'
       return NextResponse.json(

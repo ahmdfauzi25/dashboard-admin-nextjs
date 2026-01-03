@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTheme } from '@/context/ThemeContext'
 
 const navItems = [
   {
@@ -16,6 +17,7 @@ const navItems = [
           { name: 'Ecommerce', href: '/dashboard/ecommerce' },
         ]
       },
+      { name: 'Games', icon: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z', href: '/dashboard/games' },
       { name: 'Analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', href: '/dashboard/analytics' },
       { name: 'Marketing', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', href: '/dashboard/marketing' },
       { name: 'CRM', icon: 'M17 20h-2V7a4 4 0 00-8 0v13H5a1 1 0 000 2h14a1 1 0 000-2zM9 7a2 2 0 014 0v13H9V7z', href: '/dashboard/crm' },
@@ -28,41 +30,41 @@ const navItems = [
     ]
   },
   {
-    title: 'CALENDAR',
+    title: 'ACCOUNTS',
     links: [
-      { name: 'User Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', href: '/dashboard/user-profile' },
+      // { name: 'User Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', href: '/dashboard/user-profile' },
       { name: 'Users', icon: 'M12 4.354a4 4 0 110 8.646 4 4 0 010-8.646zM12 16C8.582 16 5 17.79 5 20v2h14v-2c0-2.21-3.582-4-7-4z', href: '/dashboard/users' },
-      { name: 'Task', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', href: '/dashboard/task' },
-      { 
-        name: 'Forms', 
-        icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 
-        href: '/dashboard/forms', 
-        subLinks: [
-          { name: 'Form Elements', href: '/dashboard/forms/elements' },
-          { name: 'Form Layout', href: '/dashboard/forms/layout' },
-          { name: 'Form Validation', href: '/dashboard/forms/validation' },
-        ]
-      },
-      { 
-        name: 'Tables', 
-        icon: 'M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z', 
-        href: '/dashboard/tables', 
-        subLinks: [
-          { name: 'Table Elements', href: '/dashboard/tables/elements' },
-          { name: 'Data Tables', href: '/dashboard/tables/data' },
-        ]
-      },
-      { 
-        name: 'Pages', 
-        icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', 
-        href: '/dashboard/pages', 
-        subLinks: [
-          { name: 'Settings', href: '/dashboard/pages/settings' },
-          { name: 'Blank Page', href: '/dashboard/pages/blank' },
-          { name: 'Pricing', href: '/dashboard/pages/pricing' },
-          { name: 'Invoice', href: '/dashboard/pages/invoice' },
-        ]
-      },
+      // { name: 'Task', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', href: '/dashboard/task' },
+      // { 
+      //   name: 'Forms', 
+      //   icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 
+      //   href: '/dashboard/forms', 
+      //   subLinks: [
+      //     { name: 'Form Elements', href: '/dashboard/forms/elements' },
+      //     { name: 'Form Layout', href: '/dashboard/forms/layout' },
+      //     { name: 'Form Validation', href: '/dashboard/forms/validation' },
+      //   ]
+      // },
+      // { 
+      //   name: 'Tables', 
+      //   icon: 'M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z', 
+      //   href: '/dashboard/tables', 
+      //   subLinks: [
+      //     { name: 'Table Elements', href: '/dashboard/tables/elements' },
+      //     { name: 'Data Tables', href: '/dashboard/tables/data' },
+      //   ]
+      // },
+      // { 
+      //   name: 'Pages', 
+      //   icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', 
+      //   href: '/dashboard/pages', 
+      //   subLinks: [
+      //     { name: 'Settings', href: '/dashboard/pages/settings' },
+      //     { name: 'Blank Page', href: '/dashboard/pages/blank' },
+      //     { name: 'Pricing', href: '/dashboard/pages/pricing' },
+      //     { name: 'Invoice', href: '/dashboard/pages/invoice' },
+      //   ]
+      // },
     ]
   },
   {
@@ -72,28 +74,29 @@ const navItems = [
       { name: 'Support', icon: 'M18.364 5.636l-3.536 3.536m0 0a3 3 0 10-4.243 4.243m4.243-4.243L12 18V9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z', href: '/dashboard/support', badge: 'NEW' },
       { name: 'Email', icon: 'M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207', href: '/dashboard/email', badge: 'NEW' },
     ]
-  },
-  {
-    title: 'OTHERS',
-    links: [
-      { name: 'Charts', icon: 'M9 19V6l-2 2-2-2-4 4v10a2 2 0 002 2h8a2 2 0 002-2zM4 14h10m-8 0L9 12', href: '/dashboard/charts' },
-      { 
-        name: 'UI Elements', 
-        icon: 'M9 19V6l-2 2-2-2-4 4v10a2 2 0 002 2h8a2 2 0 002-2zM4 14h10m-8 0L9 12', 
-        href: '/dashboard/ui-elements', 
-        subLinks: [
-          { name: 'Alerts', href: '/dashboard/ui-elements/alerts' },
-          { name: 'Buttons', href: '/dashboard/ui-elements/buttons' },
-          { name: 'Cards', href: '/dashboard/ui-elements/cards' },
-        ]
-      },
-      { name: 'Authentication', icon: 'M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207', href: '/dashboard/authentication' },
-    ]
   }
+  // {
+  //   title: 'OTHERS',
+  //   links: [
+  //     { name: 'Charts', icon: 'M9 19V6l-2 2-2-2-4 4v10a2 2 0 002 2h8a2 2 0 002-2zM4 14h10m-8 0L9 12', href: '/dashboard/charts' },
+  //     { 
+  //       name: 'UI Elements', 
+  //       icon: 'M9 19V6l-2 2-2-2-4 4v10a2 2 0 002 2h8a2 2 0 002-2zM4 14h10m-8 0L9 12', 
+  //       href: '/dashboard/ui-elements', 
+  //       subLinks: [
+  //         { name: 'Alerts', href: '/dashboard/ui-elements/alerts' },
+  //         { name: 'Buttons', href: '/dashboard/ui-elements/buttons' },
+  //         { name: 'Cards', href: '/dashboard/ui-elements/cards' },
+  //       ]
+  //     },
+  //     { name: 'Authentication', icon: 'M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207', href: '/dashboard/authentication' },
+  //   ]
+  // }
 ]
 
 function SidebarLink({ item, isSidebarOpen }) {
   const pathname = usePathname()
+  const { isDarkMode } = useTheme()
   const isSubLinkActive = item.subLinks && item.subLinks.some(sub => pathname === sub.href || pathname.startsWith(sub.href))
   const [isOpen, setIsOpen] = useState(isSubLinkActive || false)
 
@@ -117,7 +120,7 @@ function SidebarLink({ item, isSidebarOpen }) {
       <button
         onClick={toggleOpen}
         className={`flex items-center justify-between w-full rounded-md font-medium transition-colors duration-200 ${isSidebarOpen ? 'py-2.5 px-4 text-sm' : 'py-2 px-2 text-xs'}
-          ${isLinkActive ? 'bg-violet-100 text-violet-700' : 'text-gray-700 hover:bg-gray-100'}
+          ${isLinkActive ? (isDarkMode ? 'bg-violet-900 text-violet-200' : 'bg-violet-100 text-violet-700') : (isDarkMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100')}
         `}
       >
         <Link href={item.href} className={`flex items-center ${isSidebarOpen ? 'flex-grow' : 'justify-center w-full'}`}>
@@ -139,13 +142,13 @@ function SidebarLink({ item, isSidebarOpen }) {
         )}
       </button>
       {isOpen && isSidebarOpen && item.subLinks && (
-        <div className="pl-4 pt-2 space-y-1">
+        <div className={`pl-4 pt-2 space-y-1 ${isDarkMode ? 'bg-gray-800' : ''}`}>
           {item.subLinks.map((sub, idx) => (
             <Link 
               key={idx} 
               href={sub.href}
               className={`block py-2 px-4 text-sm font-medium rounded-md transition-colors duration-200
-                ${pathname === sub.href || pathname.startsWith(sub.href) ? 'bg-violet-100 text-violet-700' : 'text-gray-600 hover:bg-gray-100'}
+                ${pathname === sub.href || pathname.startsWith(sub.href) ? (isDarkMode ? 'bg-violet-900 text-violet-200' : 'bg-violet-100 text-violet-700') : (isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100')}
               `}
             >
               {sub.name}
@@ -158,10 +161,11 @@ function SidebarLink({ item, isSidebarOpen }) {
 }
 
 export default function Sidebar({ isSidebarOpen }) {
+  const { isDarkMode } = useTheme()
   return (
-    <div className="w-full h-full bg-white shadow-lg overflow-hidden flex flex-col">
+    <div className={`w-full h-full shadow-lg overflow-hidden flex flex-col transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
       <div className={`flex-shrink-0 py-7 ${isSidebarOpen ? 'px-6' : 'px-2'}`}>
-        <Link href="/dashboard" className={`flex items-center ${isSidebarOpen ? 'space-x-2' : 'justify-center'} text-lg font-bold text-gray-900 transition-all duration-200`}>
+        <Link href="/dashboard" className={`flex items-center ${isSidebarOpen ? 'space-x-2' : 'justify-center'} text-lg font-bold transition-all duration-200 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           <img src="/img/ico_dash.png" alt="Dashboard Admin Logo" className="h-5 w-auto" />
           {isSidebarOpen && <span>Dashboard Admin</span>}
         </Link>
@@ -169,7 +173,7 @@ export default function Sidebar({ isSidebarOpen }) {
       <nav className="flex-1 mt-8 overflow-hidden">
         {navItems.map((section, index) => (
           <div key={index} className={`${isSidebarOpen ? 'mb-8' : 'mb-4'} ${isSidebarOpen ? 'px-6' : 'px-2'}`}>
-            {isSidebarOpen && <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-3">{section.title}</h3>}
+            {isSidebarOpen && <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 transition-colors ${isDarkMode ? 'text-gray-400' : 'text-gray-800'}`}>{section.title}</h3>}
             <div className={isSidebarOpen ? 'space-y-3' : 'space-y-2'}>
               {section.links.map((item, itemIdx) => (
                 <SidebarLink key={itemIdx} item={item} isSidebarOpen={isSidebarOpen} />

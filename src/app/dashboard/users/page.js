@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useTheme } from '@/context/ThemeContext'
 
 export default function UsersPage() {
+  const { isDarkMode } = useTheme()
   const [usersData, setUsersData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -18,7 +20,8 @@ export default function UsersPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'USER'
+    role: 'USER',
+    avatar: null
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -32,7 +35,8 @@ export default function UsersPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'USER'
+    role: 'USER',
+    avatar: null
   })
   const [showEditPassword, setShowEditPassword] = useState(false)
   const [showEditConfirmPassword, setShowEditConfirmPassword] = useState(false)
@@ -65,11 +69,19 @@ export default function UsersPage() {
 
   // Handle form input change
   const handleFormChange = (e) => {
-    const { name, value } = e.target
-    setFormData({
-      ...formData,
-      [name]: value
-    })
+    const { name, value, type, files } = e.target
+    
+    if (type === 'file') {
+      setFormData({
+        ...formData,
+        [name]: files && files.length > 0 ? files[0] : null
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+    }
     if (formError) setFormError('')
     if (formSuccess) setFormSuccess('')
   }
@@ -101,17 +113,20 @@ export default function UsersPage() {
     }
 
     try {
+      // Create FormData to handle file upload
+      const requestData = new FormData()
+      requestData.append('name', formData.name)
+      requestData.append('email', formData.email)
+      requestData.append('password', formData.password)
+      requestData.append('role', formData.role)
+      
+      if (formData.avatar) {
+        requestData.append('avatar', formData.avatar)
+      }
+
       const response = await fetch('/api/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role
-        }),
+        body: requestData,
       })
 
       const data = await response.json()
@@ -130,7 +145,8 @@ export default function UsersPage() {
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'USER'
+        role: 'USER',
+        avatar: null
       })
 
       // Refresh users list
@@ -183,11 +199,19 @@ export default function UsersPage() {
 
   // Handle edit form input change
   const handleEditFormChange = (e) => {
-    const { name, value } = e.target
-    setEditFormData({
-      ...editFormData,
-      [name]: value
-    })
+    const { name, value, type, files } = e.target
+    
+    if (type === 'file') {
+      setEditFormData({
+        ...editFormData,
+        [name]: files && files.length > 0 ? files[0] : null
+      })
+    } else {
+      setEditFormData({
+        ...editFormData,
+        [name]: value
+      })
+    }
     if (editFormError) setEditFormError('')
     if (editFormSuccess) setEditFormSuccess('')
   }
@@ -233,23 +257,25 @@ export default function UsersPage() {
     }
 
     try {
-      const updateData = {
-        name: editFormData.name,
-        email: editFormData.email,
-        role: editFormData.role
-      }
+      // Create FormData to handle file upload
+      const requestData = new FormData()
+      requestData.append('name', editFormData.name)
+      requestData.append('email', editFormData.email)
+      requestData.append('role', editFormData.role)
 
       // Only include password if it's being changed
       if (editFormData.password) {
-        updateData.password = editFormData.password
+        requestData.append('password', editFormData.password)
+      }
+
+      // Only include avatar if a new one is selected
+      if (editFormData.avatar) {
+        requestData.append('avatar', editFormData.avatar)
       }
 
       const response = await fetch(`/api/users/${selectedUserId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
+        body: requestData,
       })
 
       const data = await response.json()
@@ -337,9 +363,9 @@ export default function UsersPage() {
   const paginatedData = filteredData.slice(startIndex, startIndex + entriesPerPage)
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className={`${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'} rounded-lg shadow-sm p-6 transition-colors`}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Users</h2>
+        <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>Users</h2>
         <button
           onClick={() => setShowModal(true)}
           className="px-4 py-2 bg-violet-600 text-white font-medium rounded-md hover:bg-violet-700 transition-colors flex items-center space-x-2"
@@ -354,13 +380,13 @@ export default function UsersPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto transition-colors`}>
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex items-center justify-between">
-              <h3 className="text-2xl font-bold text-gray-900">Tambah User Baru</h3>
+            <div className={`sticky top-0 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-8 py-6 flex items-center justify-between transition-colors`}>
+              <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Tambah User Baru</h3>
               <button
                 onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                className={`${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} focus:outline-none transition-colors`}
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -387,7 +413,7 @@ export default function UsersPage() {
               <form onSubmit={handleAddUser} className="space-y-6">
                 {/* Name Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Full Name
                   </label>
                   <input
@@ -396,14 +422,14 @@ export default function UsersPage() {
                     value={formData.name}
                     onChange={handleFormChange}
                     placeholder="Enter full name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                    className={`w-full px-4 py-2 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                     required
                   />
                 </div>
 
                 {/* Email Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Email Address
                   </label>
                   <input
@@ -412,14 +438,14 @@ export default function UsersPage() {
                     value={formData.email}
                     onChange={handleFormChange}
                     placeholder="Enter email address"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                    className={`w-full px-4 py-2 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                     required
                   />
                 </div>
 
                 {/* Password Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Password
                   </label>
                   <div className="relative">
@@ -429,13 +455,13 @@ export default function UsersPage() {
                       value={formData.password}
                       onChange={handleFormChange}
                       placeholder="Enter password (min. 6 characters)"
-                      className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                      className={`w-full px-4 py-2 pr-12 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 p-1 z-10"
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'} p-1 z-10 transition-colors`}
                       tabIndex="-1"
                     >
                       {showPassword ? (
@@ -454,7 +480,7 @@ export default function UsersPage() {
 
                 {/* Confirm Password Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -464,13 +490,13 @@ export default function UsersPage() {
                       value={formData.confirmPassword}
                       onChange={handleFormChange}
                       placeholder="Confirm password"
-                      className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                      className={`w-full px-4 py-2 pr-12 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 p-1 z-10"
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'} p-1 z-10 transition-colors`}
                       tabIndex="-1"
                     >
                       {showConfirmPassword ? (
@@ -489,14 +515,14 @@ export default function UsersPage() {
 
                 {/* Role Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Role
                   </label>
                   <select
                     name="role"
                     value={formData.role}
                     onChange={handleFormChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                    className={`w-full px-4 py-2 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                   >
                     <option value="USER">User</option>
                     <option value="ADMIN">Admin</option>
@@ -504,12 +530,41 @@ export default function UsersPage() {
                   </select>
                 </div>
 
+                {/* Avatar Field */}
+                <div>
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                    Avatar (Optional)
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    {formData.avatar && (
+                      <div className="relative">
+                        <img
+                          src={URL.createObjectURL(formData.avatar)}
+                          alt="Avatar preview"
+                          className="w-20 h-20 rounded-full object-cover border-2 border-violet-600"
+                        />
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      name="avatar"
+                      onChange={handleFormChange}
+                      accept="image/*"
+                      className="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-violet-50 file:text-violet-700
+                        hover:file:bg-violet-100"
+                    />
+                  </div>
+                </div>
                 {/* Form Buttons */}
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
+                    className={`flex-1 px-4 py-2 border font-medium rounded-md transition-colors ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                   >
                     Cancel
                   </button>
@@ -530,13 +585,13 @@ export default function UsersPage() {
       {/* Edit Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-screen overflow-y-auto transition-colors`}>
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex items-center justify-between">
-              <h3 className="text-2xl font-bold text-gray-900">Edit User</h3>
+            <div className={`sticky top-0 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-8 py-6 flex items-center justify-between transition-colors`}>
+              <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Edit User</h3>
               <button
                 onClick={closeEditModal}
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                className={`${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'} focus:outline-none transition-colors`}
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -563,7 +618,7 @@ export default function UsersPage() {
               <form onSubmit={handleUpdateUser} className="space-y-6">
                 {/* Name Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Full Name
                   </label>
                   <input
@@ -572,14 +627,14 @@ export default function UsersPage() {
                     value={editFormData.name}
                     onChange={handleEditFormChange}
                     placeholder="Enter full name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                    className={`w-full px-4 py-2 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                     required
                   />
                 </div>
 
                 {/* Email Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Email Address
                   </label>
                   <input
@@ -588,14 +643,14 @@ export default function UsersPage() {
                     value={editFormData.email}
                     onChange={handleEditFormChange}
                     placeholder="Enter email address"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                    className={`w-full px-4 py-2 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                     required
                   />
                 </div>
 
                 {/* Password Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Password (Leave empty to keep current password)
                   </label>
                   <div className="relative">
@@ -605,12 +660,12 @@ export default function UsersPage() {
                       value={editFormData.password}
                       onChange={handleEditFormChange}
                       placeholder="Enter new password (min. 6 characters)"
-                      className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                      className={`w-full px-4 py-2 pr-12 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowEditPassword(!showEditPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 p-1 z-10"
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'} p-1 z-10 transition-colors`}
                       tabIndex="-1"
                     >
                       {showEditPassword ? (
@@ -629,7 +684,7 @@ export default function UsersPage() {
 
                 {/* Confirm Password Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -639,12 +694,12 @@ export default function UsersPage() {
                       value={editFormData.confirmPassword}
                       onChange={handleEditFormChange}
                       placeholder="Confirm password"
-                      className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                      className={`w-full px-4 py-2 pr-12 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowEditConfirmPassword(!showEditConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 p-1 z-10"
+                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'} p-1 z-10 transition-colors`}
                       tabIndex="-1"
                     >
                       {showEditConfirmPassword ? (
@@ -663,14 +718,14 @@ export default function UsersPage() {
 
                 {/* Role Field */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                     Role
                   </label>
                   <select
                     name="role"
                     value={editFormData.role}
                     onChange={handleEditFormChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent outline-none transition-all"
+                    className={`w-full px-4 py-2 border rounded-md outline-none transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-violet-600 focus:border-transparent' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-violet-600 focus:border-transparent'}`}
                   >
                     <option value="USER">User</option>
                     <option value="ADMIN">Admin</option>
@@ -678,12 +733,41 @@ export default function UsersPage() {
                   </select>
                 </div>
 
+                {/* Avatar Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Avatar (Optional)
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    {editFormData.avatar && (
+                      <div className="relative">
+                        <img
+                          src={URL.createObjectURL(editFormData.avatar)}
+                          alt="Avatar preview"
+                          className="w-20 h-20 rounded-full object-cover border-2 border-violet-600"
+                        />
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      name="avatar"
+                      onChange={handleEditFormChange}
+                      accept="image/*"
+                      className="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-violet-50 file:text-violet-700
+                        hover:file:bg-violet-100"
+                    />
+                  </div>
+                </div>
                 {/* Form Buttons */}
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
                     onClick={closeEditModal}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
+                    className={`flex-1 px-4 py-2 border font-medium rounded-md transition-colors ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                   >
                     Cancel
                   </button>
@@ -701,8 +785,8 @@ export default function UsersPage() {
         </div>
       )}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className={`mb-6 p-4 border rounded-md ${isDarkMode ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-200'}`}>
+          <p className={`text-sm ${isDarkMode ? 'text-red-200' : 'text-red-700'}`}>{error}</p>
         </div>
       )}
 
@@ -713,7 +797,7 @@ export default function UsersPage() {
             <div className="inline-block">
               <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin"></div>
             </div>
-            <p className="mt-2 text-gray-600">Loading users...</p>
+            <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading users...</p>
           </div>
         </div>
       ) : (
@@ -721,21 +805,21 @@ export default function UsersPage() {
           {/* Controls */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-gray-700">Show</span>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Show</span>
               <select
                 value={entriesPerPage}
                 onChange={(e) => {
                   setEntriesPerPage(Number(e.target.value))
                   setCurrentPage(1)
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-600"
+                className={`px-3 py-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-violet-600 transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={15}>15</option>
                 <option value={20}>20</option>
               </select>
-              <span className="text-sm font-medium text-gray-700">entries</span>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>entries</span>
             </div>
 
             <div className="relative w-64">
@@ -747,9 +831,9 @@ export default function UsersPage() {
                   setSearchTerm(e.target.value)
                   setCurrentPage(1)
                 }}
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-600"
+                className={`w-full px-4 py-2 pl-10 border rounded-md text-sm outline-none focus:ring-2 focus:ring-violet-600 transition-all ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
               />
-              <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} absolute left-3 top-1/2 transform -translate-y-1/2`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -757,24 +841,30 @@ export default function UsersPage() {
 
           {/* Table */}
           <div className="overflow-x-auto">
-        <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className={`w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+          <thead className={isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>User</th>              <th className={`px-6 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>Avatar</th>              <th className={`px-6 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>Email</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>Role</th>
               {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th> */}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>Action</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className={`divide-y ${isDarkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
             {paginatedData.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-violet-600">{user.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.role}</td>
+              <tr key={user.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`}>{user.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <img 
+                    src={user.avatar || '/img/user.png'} 
+                    alt={user.name}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                </td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{user.email}</td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{user.role}</td>
                 {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.age}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.startDate}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-violet-600">{user.salary}</td> */}
@@ -814,7 +904,7 @@ export default function UsersPage() {
         <button
           onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className={`px-4 py-2 text-sm border rounded-md transition-colors ${isDarkMode ? 'text-gray-400 border-gray-600 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed' : 'text-gray-600 border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'}`}
         >
           Previous
         </button>
@@ -827,7 +917,7 @@ export default function UsersPage() {
               className={`px-3 py-2 text-sm rounded-md transition-colors ${
                 currentPage === page
                   ? 'bg-violet-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               {page}
@@ -838,14 +928,14 @@ export default function UsersPage() {
         <button
           onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className={`px-4 py-2 text-sm border rounded-md transition-colors ${isDarkMode ? 'text-gray-400 border-gray-600 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed' : 'text-gray-600 border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'}`}
         >
           Next
         </button>
       </div>
 
       {/* Info text */}
-      <div className="text-sm text-gray-600 mt-4 text-right">
+      <div className={`text-sm mt-4 text-right ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
         Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, filteredData.length)} of {filteredData.length} entries
       </div>
         </>

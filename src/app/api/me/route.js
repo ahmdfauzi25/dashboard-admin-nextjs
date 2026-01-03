@@ -14,9 +14,9 @@ export async function GET(request) {
       )
     }
 
-    // Get user from database
-    const [users] = await query(
-      'SELECT id, email, name, role, createdAt, updatedAt FROM users WHERE id = ?',
+    // Get user from database (include avatar)
+    const users = await query(
+      'SELECT id, email, name, role, avatar, createdAt, updatedAt FROM users WHERE id = ?',
       [decoded.id]
     )
     const user = users.length > 0 ? users[0] : null
@@ -26,6 +26,14 @@ export async function GET(request) {
         { error: 'User not found' },
         { status: 404 }
       )
+    }
+
+    // Convert avatar buffer to base64 if it exists
+    if (user.avatar) {
+      user.avatarBase64 = user.avatar.toString('base64')
+      delete user.avatar // Remove the buffer to reduce response size
+    } else {
+      user.avatarBase64 = null
     }
 
     return NextResponse.json(
@@ -38,7 +46,6 @@ export async function GET(request) {
     console.error('Get user error:', error)
     console.error('Error code:', error?.code)
     console.error('Error message:', error?.message)
-    console.error('Error stack:', error?.stack)
     
     // Handle MySQL connection or general database errors
     if (error && (String(error.code || '').startsWith('ER_') || error.message?.includes('connect') || error.message?.includes('Can\'t reach database server'))) {

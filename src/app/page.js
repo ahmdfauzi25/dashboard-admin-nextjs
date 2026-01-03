@@ -86,26 +86,13 @@ export default function LoginPage() {
           <div className="pt-8 pb-6 px-8">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold text-gray-900">LOG IN</h1>
-              {/* Shield Icon with Gradient */}
+              {/* Dashboard Icon */}
               <div className="relative">
-                <svg 
-                  className="w-8 h-8" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#9333ea" />
-                      <stop offset="50%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#10b981" />
-                    </linearGradient>
-                  </defs>
-                  <path 
-                    d="M12 2L4 5V11C4 16.55 7.16 21.74 12 23C16.84 21.74 20 16.55 20 11V5L12 2ZM12 4.18L18 6.3V11C18 15.24 15.68 19.23 12 20.46C8.32 19.23 6 15.24 6 11V6.3L12 4.18Z" 
-                    fill="url(#shieldGradient)"
-                  />
-                </svg>
+                <img 
+                  src="/img/icon_tabs.png" 
+                  alt="Dashboard Icon" 
+                  className="w-10 h-10 object-contain"
+                />
               </div>
             </div>
           </div>
