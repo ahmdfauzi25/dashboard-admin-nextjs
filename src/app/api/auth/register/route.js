@@ -4,6 +4,17 @@ import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS(request) {
+  const origin = request.headers.get('origin')
+  const response = new NextResponse(null, { status: 200 })
+  response.headers.set('Access-Control-Allow-Origin', origin || '*')
+  response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  response.headers.set('Access-Control-Allow-Credentials', 'true')
+  return response
+}
+
 // Utility: Generate OTP
 function generateOTP() {
   return crypto.randomInt(100000, 999999).toString()
@@ -68,44 +79,60 @@ async function isBlacklisted(type, value) {
 // ============================================
 export async function POST(request) {
   try {
+    const origin = request.headers.get('origin')
     const { name, email, phone, password } = await request.json()
 
     // 1. VALIDATION
     if (!name || !email || !phone || !password) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'All fields are required' },
         { status: 400 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     if (password.length < 8) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Password must be at least 8 characters' },
         { status: 400 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Invalid email format' },
         { status: 400 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 2. CHECK BLACKLIST
     if (await isBlacklisted('email', email)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Email is blacklisted' },
         { status: 403 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     if (await isBlacklisted('phone', phone)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Phone is blacklisted' },
         { status: 403 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 3. CHECK EXISTING USER
@@ -115,10 +142,13 @@ export async function POST(request) {
     )
 
     if (existingUser.length > 0) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Email or phone already registered' },
         { status: 409 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 4. HASH PASSWORD
@@ -170,18 +200,30 @@ export async function POST(request) {
       )
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Registration successful. OTP sent to email and WhatsApp.',
       user_id: userId,
       email_sent: emailSent,
       whatsapp_sent: whatsappSent
     })
+    
+    // Add CORS headers with specific origin (required for credentials)
+    response.headers.set('Access-Control-Allow-Origin', origin || '*')
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    return response
   } catch (error) {
     console.error('Registration error:', error)
-    return NextResponse.json(
+    const origin = request.headers.get('origin')
+    const errorResponse = NextResponse.json(
       { success: false, error: 'Registration failed' },
       { status: 500 }
     )
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*')
+    errorResponse.headers.set('Access-Control-Allow-Credentials', 'true')
+    return errorResponse
   }
 }

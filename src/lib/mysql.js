@@ -20,6 +20,20 @@ export async function query(sql, params) {
     return Array.isArray(queryResult) ? queryResult[0] : queryResult
   } catch (error) {
     console.error('Database query error:', error);
+    console.error('SQL:', sql);
+    console.error('Params:', params);
+    
+    // Provide more helpful error messages
+    if (error.code === 'ECONNREFUSED') {
+      throw new Error('Database connection refused. Please check if MySQL is running and credentials are correct.');
+    } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+      throw new Error('Database access denied. Please check your database credentials.');
+    } else if (error.code === 'ER_BAD_DB_ERROR') {
+      throw new Error(`Database '${dbConfig.database}' does not exist. Please create it first.`);
+    } else if (error.code === 'ER_NO_SUCH_TABLE') {
+      throw new Error(`Table does not exist. Please run the database migration scripts.`);
+    }
+    
     throw error;
   } finally {
     if (connection) connection.release();

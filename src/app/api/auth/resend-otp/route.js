@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server'
 import { query } from '@/lib/mysql'
 import nodemailer from 'nodemailer'
 
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS(request) {
+  const origin = request.headers.get('origin')
+  const response = new NextResponse(null, { status: 200 })
+  response.headers.set('Access-Control-Allow-Origin', origin || '*')
+  response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  response.headers.set('Access-Control-Allow-Credentials', 'true')
+  return response
+}
+
 /**
  * Generate 6-digit OTP
  */
@@ -83,10 +94,13 @@ export async function POST(request) {
     const { user_id } = await request.json()
 
     if (!user_id) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'User ID required' },
         { status: 400 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 1. FIND USER
@@ -96,10 +110,13 @@ export async function POST(request) {
     )
 
     if (users.length === 0) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     const user = users[0]
@@ -143,17 +160,29 @@ export async function POST(request) {
       [user_id, otpCode, whatsappSent ? 'sent' : 'failed']
     )
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'OTP resent successfully',
       email_sent: emailSent,
       whatsapp_sent: whatsappSent
     })
+    
+    // Add CORS headers with specific origin (required for credentials)
+    response.headers.set('Access-Control-Allow-Origin', origin || '*')
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    return response
   } catch (error) {
     console.error('Resend OTP error:', error)
-    return NextResponse.json(
+    const origin = request.headers.get('origin')
+    const errorResponse = NextResponse.json(
       { success: false, error: 'Failed to resend OTP' },
       { status: 500 }
     )
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*')
+    errorResponse.headers.set('Access-Control-Allow-Credentials', 'true')
+    return errorResponse
   }
 }

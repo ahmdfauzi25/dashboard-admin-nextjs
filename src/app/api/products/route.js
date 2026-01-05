@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server'
 import { query } from '@/lib/mysql'
+import { addCorsHeaders, createOptionsResponse } from '@/lib/cors'
+
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS(request) {
+  return createOptionsResponse(request)
+}
 
 // GET all products or products for a specific game
 export async function GET(request) {
@@ -13,7 +19,7 @@ export async function GET(request) {
         `SELECT p.*, g.name as game_name 
          FROM products p 
          JOIN games g ON p.game_id = g.id 
-         WHERE p.game_id = ? 
+         WHERE p.game_id = ? AND p.is_active = TRUE
          ORDER BY p.price ASC`,
         [gameId]
       )
@@ -22,21 +28,42 @@ export async function GET(request) {
         `SELECT p.*, g.name as game_name 
          FROM products p 
          JOIN games g ON p.game_id = g.id 
+         WHERE p.is_active = TRUE
          ORDER BY g.name, p.price ASC`,
         []
       )
     }
     
-    return NextResponse.json({
+    // Format products for frontend
+    const formattedProducts = products.map(product => ({
+      id: product.id,
+      game_id: product.game_id,
+      name: product.name,
+      price: parseFloat(product.price),
+      description: product.description,
+      is_active: product.is_active,
+      game_name: product.game_name,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at
+    }))
+    
+    const response = NextResponse.json({
       success: true,
-      products
+      products: formattedProducts
     })
+    
+    // Add CORS headers
+    addCorsHeaders(response, request)
+    
+    return response
   } catch (error) {
     console.error('Error fetching products:', error)
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { success: false, error: 'Failed to fetch products' },
       { status: 500 }
     )
+    addCorsHeaders(errorResponse, request)
+    return errorResponse
   }
 }
 

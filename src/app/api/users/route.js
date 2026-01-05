@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     // Fetch all users from database
     const users = await query(
-      'SELECT id, name, email, role, avatar FROM users ORDER BY id DESC',
+      'SELECT id, name, email, role, avatar FROM users WHERE role = "ADMIN" OR role = "RESELLER" ORDER BY id DESC',
       []
     )
 

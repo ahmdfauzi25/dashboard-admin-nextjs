@@ -1,18 +1,33 @@
 import { NextResponse } from 'next/server'
 import { query } from '@/lib/mysql'
 
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS(request) {
+  const origin = request.headers.get('origin')
+  const response = new NextResponse(null, { status: 200 })
+  response.headers.set('Access-Control-Allow-Origin', origin || '*')
+  response.headers.set('Access-Control-Allow-Methods', 'POST, PUT, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  response.headers.set('Access-Control-Allow-Credentials', 'true')
+  return response
+}
+
 // ============================================
 // VERIFY OTP ENDPOINT
 // ============================================
 export async function POST(request) {
   try {
+    const origin = request.headers.get('origin')
     const { user_id, otp_code } = await request.json()
 
     if (!user_id || !otp_code) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'User ID and OTP code required' },
         { status: 400 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 1. CHECK IF USER EXISTS
@@ -22,20 +37,26 @@ export async function POST(request) {
     )
 
     if (users.length === 0) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     const user = users[0]
 
     // 2. CHECK ALREADY VERIFIED
     if (user.is_verified) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'User already verified' },
         { status: 400 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 3. FIND VALID OTP
@@ -47,10 +68,13 @@ export async function POST(request) {
     )
 
     if (otps.length === 0) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Invalid or expired OTP' },
         { status: 401 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     const otp = otps[0]
@@ -61,10 +85,13 @@ export async function POST(request) {
         `UPDATE otps SET is_expired = TRUE WHERE id = ?`,
         [otp.id]
       )
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'OTP has expired' },
         { status: 401 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 5. CHECK MAX ATTEMPTS
@@ -73,10 +100,13 @@ export async function POST(request) {
         `UPDATE otps SET is_expired = TRUE WHERE id = ?`,
         [otp.id]
       )
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'Maximum verification attempts exceeded' },
         { status: 429 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     // 6. MARK OTP AS USED
@@ -97,31 +127,47 @@ export async function POST(request) {
        VALUES (?, ?, 'system', 'verified')`,
       [user_id, otp_code]
     )
-
-    return NextResponse.json({
+    
+    const response = NextResponse.json({
       success: true,
       message: 'Email verification successful',
       user_id: user_id
     })
+    
+    // Add CORS headers with specific origin (required for credentials)
+    response.headers.set('Access-Control-Allow-Origin', origin || '*')
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    response.headers.set('Access-Control-Allow-Methods', 'POST, PUT, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    return response
   } catch (error) {
     console.error('OTP verification error:', error)
-    return NextResponse.json(
+    const origin = request.headers.get('origin')
+    const errorResponse = NextResponse.json(
       { success: false, error: 'Verification failed' },
       { status: 500 }
     )
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*')
+    errorResponse.headers.set('Access-Control-Allow-Credentials', 'true')
+    return errorResponse
   }
 }
 
 // Increment OTP attempt
 export async function PUT(request) {
   try {
+    const origin = request.headers.get('origin')
     const { user_id, otp_code } = await request.json()
 
     if (!user_id || !otp_code) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: 'User ID and OTP code required' },
         { status: 400 }
       )
+      response.headers.set('Access-Control-Allow-Origin', origin || '*')
+      response.headers.set('Access-Control-Allow-Credentials', 'true')
+      return response
     }
 
     await query(
@@ -130,15 +176,22 @@ export async function PUT(request) {
       [user_id, otp_code]
     )
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Attempt recorded'
     })
+    response.headers.set('Access-Control-Allow-Origin', origin || '*')
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+    return response
   } catch (error) {
     console.error('Attempt recording error:', error)
-    return NextResponse.json(
+    const origin = request.headers.get('origin')
+    const errorResponse = NextResponse.json(
       { success: false, error: 'Failed to record attempt' },
       { status: 500 }
     )
+    errorResponse.headers.set('Access-Control-Allow-Origin', origin || '*')
+    errorResponse.headers.set('Access-Control-Allow-Credentials', 'true')
+    return errorResponse
   }
 }
