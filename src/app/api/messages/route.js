@@ -84,6 +84,13 @@ export async function POST(request) {
 
     const { receiver_id, message, image_url } = await request.json()
 
+    console.log('Received message data:', {
+      receiver_id,
+      message_length: message?.length,
+      has_image_url: !!image_url,
+      image_url_length: image_url?.length
+    })
+
     if (!receiver_id || !message) {
       return NextResponse.json(
         { success: false, error: 'Receiver ID and message are required' },
@@ -91,11 +98,24 @@ export async function POST(request) {
       )
     }
 
+    const hasImage = !!image_url
+    const imageUrlToStore = image_url || null
+
+    console.log('Inserting to database:', {
+      sender_id: senderId,
+      receiver_id,
+      message_length: message.length,
+      has_image: hasImage,
+      image_url_length: imageUrlToStore?.length
+    })
+
     const result = await query(
       `INSERT INTO messages (sender_id, receiver_id, message, has_image, image_url) 
        VALUES (?, ?, ?, ?, ?)`,
-      [senderId, receiver_id, message, !!image_url, image_url || null]
+      [senderId, receiver_id, message, hasImage, imageUrlToStore]
     )
+
+    console.log('Insert result:', { insertId: result.insertId })
 
     // Get the newly created message with user details
     const newMessage = await query(
@@ -110,6 +130,12 @@ export async function POST(request) {
        WHERE m.id = ?`,
       [result.insertId]
     )
+
+    console.log('Retrieved message:', {
+      id: newMessage[0]?.id,
+      has_image: newMessage[0]?.has_image,
+      image_url_length: newMessage[0]?.image_url?.length
+    })
 
     return NextResponse.json({
       success: true,

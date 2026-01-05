@@ -3,12 +3,12 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-// Redirect to /auth/register
-export default function RegisterPage() {
+// Redirect to root login page
+export default function AuthLoginPage() {
   const router = useRouter()
   
   useEffect(() => {
-    router.replace('/auth/register')
+    router.replace('/')
   }, [router])
   
   return null

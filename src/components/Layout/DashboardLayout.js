@@ -19,13 +19,43 @@ export default function DashboardLayout({ children }) {
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [isChecking, setIsChecking] = useState(true)
   
   // Determine if sidebar should be visually open (either permanently or on hover)
   const isSidebarVisuallyOpen = isSidebarOpen || isHovering
 
+  // Check user role and protect customer from accessing dashboard
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const response = await fetch('/api/me')
+        if (response.ok) {
+          const data = await response.json()
+          // CRITICAL: Customer DILARANG KERAS akses dashboard
+          if (data.user?.role === 'customer') {
+            router.replace('/auth/login')
+            return
+          }
+          setUserData(data.user)
+        } else {
+          // Not authenticated
+          router.replace('/auth/login')
+        }
+      } catch (error) {
+        console.error('Error checking user role:', error)
+        router.replace('/auth/login')
+      } finally {
+        setIsChecking(false)
+      }
+    }
+
+    checkUserRole()
+  }, [router])
+
   // Fetch user profile
   useEffect(() => {
     const fetchUserProfile = async () => {
+      if (isChecking) return
       try {
         const response = await fetch('/api/me')
         if (response.ok) {
@@ -38,7 +68,7 @@ export default function DashboardLayout({ children }) {
     }
 
     fetchUserProfile()
-  }, [])
+  }, [isChecking])
 
   // Poll for unread messages
   useEffect(() => {
@@ -131,6 +161,20 @@ export default function DashboardLayout({ children }) {
       alert('An error occurred during logout')
       setLogoutLoading(false)
     }
+  }
+
+  // Show loading while checking user role
+  if (isChecking) {
+    return (
+      <div className={`flex items-center justify-center h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600 mx-auto mb-4"></div>
+          <p className={`text-lg font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            Verifying access...
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

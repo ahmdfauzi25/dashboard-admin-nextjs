@@ -64,7 +64,14 @@ export async function POST(request) {
     )
 
     // Set HTTP-only cookie for token (more secure than localStorage)
+    // Set both cookie names for compatibility
     response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
+    response.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

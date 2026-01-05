@@ -18,15 +18,15 @@ const navItems = [
         ]
       },
       { name: 'Games', icon: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z', href: '/dashboard/games' },
-      { name: 'Analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', href: '/dashboard/analytics' },
-      { name: 'Marketing', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', href: '/dashboard/marketing' },
-      { name: 'CRM', icon: 'M17 20h-2V7a4 4 0 00-8 0v13H5a1 1 0 000 2h14a1 1 0 000-2zM9 7a2 2 0 014 0v13H9V7z', href: '/dashboard/crm' },
-      { name: 'Stocks', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10h2m2 0V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10h2m2 0V7a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2z', href: '/dashboard/stocks' },
-      { name: 'SaaS', icon: 'M7 8h10M7 12h10M7 16h10M9 4h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V6a2 2 0 012-2z', href: '/dashboard/saas', badge: 'NEW' },
-      { name: 'Logistics', icon: 'M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4 0V3a1 1 0 011-1h2a1 1 0 011 1v1m-6 0V3a1 1 0 011-1h2a1 1 0 011 1v1', href: '/dashboard/logistics', badge: 'NEW' },
-      { name: 'AI Assistant', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', href: '/dashboard/ai-assistant', badge: 'NEW' },
-      { name: 'E-commerce', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', href: '/dashboard/e-commerce' },
-      { name: 'Calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', href: '/dashboard/calendar' },
+      // { name: 'Analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', href: '/dashboard/analytics' },
+      // { name: 'Marketing', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', href: '/dashboard/marketing' },
+      // { name: 'CRM', icon: 'M17 20h-2V7a4 4 0 00-8 0v13H5a1 1 0 000 2h14a1 1 0 000-2zM9 7a2 2 0 014 0v13H9V7z', href: '/dashboard/crm' },
+      // { name: 'Stocks', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10h2m2 0V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10h2m2 0V7a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2z', href: '/dashboard/stocks' },
+      // { name: 'SaaS', icon: 'M7 8h10M7 12h10M7 16h10M9 4h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V6a2 2 0 012-2z', href: '/dashboard/saas', badge: 'NEW' },
+      // { name: 'Logistics', icon: 'M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4 0V3a1 1 0 011-1h2a1 1 0 011 1v1m-6 0V3a1 1 0 011-1h2a1 1 0 011 1v1', href: '/dashboard/logistics', badge: 'NEW' },
+      // { name: 'AI Assistant', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', href: '/dashboard/ai-assistant', badge: 'NEW' },
+      // { name: 'E-commerce', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', href: '/dashboard/e-commerce' },
+      // { name: 'Calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', href: '/dashboard/calendar' },
     ]
   },
   {
@@ -34,6 +34,7 @@ const navItems = [
     links: [
       // { name: 'User Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', href: '/dashboard/user-profile' },
       { name: 'Users', icon: 'M12 4.354a4 4 0 110 8.646 4 4 0 010-8.646zM12 16C8.582 16 5 17.79 5 20v2h14v-2c0-2.21-3.582-4-7-4z', href: '/dashboard/users' },
+      { name: 'Customers', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', href: '/dashboard/customers' },
       // { name: 'Task', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', href: '/dashboard/task' },
       // { 
       //   name: 'Forms', 
@@ -71,8 +72,14 @@ const navItems = [
     title: 'SUPPORT',
     links: [
       { name: 'Chat', icon: 'M7 8h10M7 12h10M7 16h10M9 4h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V6a2 2 0 012-2z', href: '/dashboard/chat' },
-      { name: 'Support', icon: 'M18.364 5.636l-3.536 3.536m0 0a3 3 0 10-4.243 4.243m4.243-4.243L12 18V9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z', href: '/dashboard/support', badge: 'NEW' },
-      { name: 'Email', icon: 'M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207', href: '/dashboard/email', badge: 'NEW' },
+      { name: 'Support', icon: 'M18.364 5.636l-3.536 3.536m0 0a3 3 0 10-4.243 4.243m4.243-4.243L12 18V9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z', href: '/dashboard/support'},
+      // { name: 'Email', icon: 'M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207', href: '/dashboard/email', badge: 'NEW' },
+    ]
+  },
+  {
+    title: 'MANAGEMENT',
+    links: [
+      { name: 'OTP Management', icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', href: '/dashboard/otp-management' },
     ]
   }
   // {

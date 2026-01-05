@@ -14,7 +14,11 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const [lightboxImage, setLightboxImage] = useState(null)
   const messagesEndRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -92,32 +96,113 @@ export default function ChatPage() {
     }
   }
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB')
+        return
+      }
+      
+      setSelectedFile(file)
+      
+      // Create preview for images
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setPreviewUrl(reader.result)
+        }
+        reader.readAsDataURL(file)
+      } else {
+        setPreviewUrl(null)
+      }
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    setPreviewUrl(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleDownloadImage = (imageUrl, filename = 'image') => {
+    const link = document.createElement('a')
+    link.href = imageUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const openLightbox = (imageUrl) => {
+    setLightboxImage(imageUrl)
+  }
+
+  const closeLightbox = () => {
+    setLightboxImage(null)
+  }
+
   const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!newMessage.trim() || !selectedUser) return
+    if ((!newMessage.trim() && !selectedFile) || !selectedUser) return
 
     setSending(true)
     try {
+      let imageUrl = null
+      
+      // If there's a file, convert to base64
+      if (selectedFile) {
+        const reader = new FileReader()
+        imageUrl = await new Promise((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result)
+          reader.onerror = reject
+          reader.readAsDataURL(selectedFile)
+        })
+        console.log('Image base64 length:', imageUrl?.length)
+        console.log('Image base64 preview:', imageUrl?.substring(0, 100))
+      }
+
+      const payload = {
+        receiver_id: selectedUser.id,
+        message: newMessage.trim() || '📎 File attachment',
+        image_url: imageUrl
+      }
+      
+      console.log('Sending message with image:', {
+        has_image: !!imageUrl,
+        message_length: payload.message.length,
+        image_url_length: imageUrl?.length
+      })
+
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          receiver_id: selectedUser.id,
-          message: newMessage.trim()
-        })
+        body: JSON.stringify(payload)
       })
 
       const data = await response.json()
+      console.log('Message response:', data)
+      
       if (data.success && data.data) {
+        console.log('Received message data:', {
+          has_image: data.data.has_image,
+          image_url_length: data.data.image_url?.length,
+          image_url_preview: data.data.image_url?.substring(0, 100)
+        })
         setMessages([...messages, data.data])
         setNewMessage('')
+        handleRemoveFile()
         fetchChatUsers()
       } else {
-        alert('Failed to send message')
+        console.error('Failed to send message:', data)
+        alert('Failed to send message: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error sending message:', error)
-      alert('Failed to send message')
+      alert('Failed to send message: ' + error.message)
     } finally {
       setSending(false)
     }
@@ -281,23 +366,6 @@ export default function ChatPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <button className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}>
-                  <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </button>
-                <button className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}>
-                  <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </button>
-                <button className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}>
-                  <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                  </svg>
-                </button>
-              </div>
             </div>
 
             {/* Messages Area */}
@@ -342,15 +410,33 @@ export default function ChatPage() {
                             : 'bg-gray-100 text-gray-900'
                       }`}>
                         {(msg.has_image && msg.image_url) ? (
-                          <div className="mb-2">
+                          <div className="mb-2 relative group">
                             <img
                               src={msg.image_url}
                               alt="Attachment"
-                              className="rounded-lg w-48 h-32 object-cover"
+                              className="rounded-lg max-w-xs cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => openLightbox(msg.image_url)}
+                              style={{ maxHeight: '300px', width: 'auto' }}
                             />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDownloadImage(msg.image_url, `image-${msg.id}.png`)
+                              }}
+                              className={`absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
+                                isOwn ? 'bg-violet-700 hover:bg-violet-800' : isDarkMode ? 'bg-gray-800 hover:bg-gray-900' : 'bg-gray-200 hover:bg-gray-300'
+                              }`}
+                              title="Download image"
+                            >
+                              <svg className={`w-4 h-4 ${isOwn ? 'text-white' : isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                            </button>
                           </div>
                         ) : null}
-                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                        {msg.message && msg.message !== '📎 File attachment' && (
+                          <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                        )}
                       </div>
                       {isOwn && (
                         <span className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
@@ -383,13 +469,66 @@ export default function ChatPage() {
 
             {/* Message Input */}
             <div className={`p-4 ${isDarkMode ? 'border-t border-gray-700' : 'border-t border-gray-200'}`}>
+              {/* File Preview */}
+              {selectedFile && (
+                <div className={`mb-3 p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} flex items-center justify-between`}>
+                  <div className="flex items-center space-x-3">
+                    {previewUrl ? (
+                      <img src={previewUrl} alt="Preview" className="w-16 h-16 object-cover rounded" />
+                    ) : (
+                      <div className={`w-16 h-16 flex items-center justify-center rounded ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}>
+                        <svg className={`w-8 h-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div>
+                      <p className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {selectedFile.name}
+                      </p>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {(selectedFile.size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleRemoveFile}
+                    type="button"
+                    className={`p-1 rounded-full ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'} transition-colors`}
+                  >
+                    <svg className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
               <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar"
+                  className="hidden"
+                />
                 <button
                   type="button"
+                  onClick={() => fileInputRef.current?.click()}
                   className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                  title="Attach file"
                 >
                   <svg className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                  title="Attach image"
+                >
+                  <svg className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </button>
                 <input
@@ -405,16 +544,8 @@ export default function ChatPage() {
                   } focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50 transition-all`}
                 />
                 <button
-                  type="button"
-                  className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
-                >
-                  <svg className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                </button>
-                <button
                   type="submit"
-                  disabled={!newMessage.trim() || sending}
+                  disabled={(!newMessage.trim() && !selectedFile) || sending}
                   className="p-3 rounded-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {sending ? (
@@ -451,6 +582,41 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      {/* Image Lightbox Modal */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={closeLightbox}
+        >
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
+          >
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDownloadImage(lightboxImage, 'image-download.png')
+            }}
+            className="absolute top-4 right-16 p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-all"
+            title="Download image"
+          >
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
+          <img
+            src={lightboxImage}
+            alt="Full size"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   )
 }
